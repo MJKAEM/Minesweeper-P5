@@ -8,16 +8,18 @@ import java.util.*;
 public class ProMinesweeper extends PApplet
 {
 	public final static int ROWS = 10, COLS = 10, BUTTONSIZE = 20;
-	
+
 	private PFont font1 = loadFont("ArialMT-12.vlw");
 	private Button[][] button;
+	private boolean gameOver;
 
 	public void setup()
 	{
 		textFont(font1);
 		text("Forced loading of font.", -255, -255);
-		
+
 		button = new Button[ROWS][COLS];
+		gameOver = false;
 
 		for(int row = 0; row < ROWS; row++)
 		{
@@ -47,19 +49,51 @@ public class ProMinesweeper extends PApplet
 	}
 	public void mouseReleased()
 	{
-		for(int row = 0; row < ROWS; row++)
+		if(!gameOver)
 		{
-			for(int col = 0; col < COLS; col++)
+			if(mouseButton == LEFT)
 			{
-				if(mouseX >= row * BUTTONSIZE && mouseX <= (row * BUTTONSIZE) + BUTTONSIZE)
+				for(int row = 0; row < ROWS; row++)
 				{
-					if(mouseY >= col * BUTTONSIZE && mouseY <= (col * BUTTONSIZE) + BUTTONSIZE)
+					for(int col = 0; col < COLS; col++)
 					{
-						if(!button[row][col].GetClicked())
+						if(mouseX >= row * BUTTONSIZE && mouseX <= (row * BUTTONSIZE) + BUTTONSIZE)
 						{
-							button[row][col].SetClicked();
-							//button[row][col].SetSurrounding(GetNeighbors(row, col));
-							System.out.println(GetNeighbors(row, col));
+							if(mouseY >= col * BUTTONSIZE && mouseY <= (col * BUTTONSIZE) + BUTTONSIZE)
+							{
+								if(!button[row][col].GetClicked())
+								{
+									if(!button[row][col].GetShield())
+									{
+										button[row][col].SetClicked();
+										button[row][col].SetSurrounding(GetNeighbors(row, col));
+										if(button[row][col].GetBomb())
+										{
+											button[row][col].SetEndClick();
+											LoseGame();
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			else if(mouseButton == RIGHT)
+			{
+				for(int row = 0; row < ROWS; row++)
+				{
+					for(int col = 0; col < COLS; col++)
+					{
+						if(mouseX >= row * BUTTONSIZE && mouseX <= (row * BUTTONSIZE) + BUTTONSIZE)
+						{
+							if(mouseY >= col * BUTTONSIZE && mouseY <= (col * BUTTONSIZE) + BUTTONSIZE)
+							{
+								if(!button[row][col].GetClicked())
+								{
+									button[row][col].SetShield();
+								}
+							}
 						}
 					}
 				}
@@ -69,11 +103,11 @@ public class ProMinesweeper extends PApplet
 	public int GetNeighbors(int r, int c)
 	{
 		int count = 0;
-		for(int row = r - 1; row < ROWS && row <= r + 1; r++)
+		for(int row = r - 1; row <= r + 1; row++)
 		{
-			for(int col = c - 1; col < COLS && col <= r + 1; c++)
+			for(int col = c - 1; col <= c + 1; col++)
 			{
-				if(r >= 0 && c >= 0)
+				if(row >= 0 && col >= 0 && row < ROWS && col < COLS)
 				{
 					if(button[row][col].GetBomb())
 					{
@@ -83,5 +117,19 @@ public class ProMinesweeper extends PApplet
 			}
 		}
 		return count;
+	}
+	public void LoseGame()
+	{
+		gameOver = true;
+		for(int row = 0; row < ROWS; row++)
+		{
+			for(int col = 0; col < COLS; col++)
+			{
+				if(button[row][col].GetBomb())
+				{
+					button[row][col].SetClicked();
+				}
+			}
+		}
 	}
 }
