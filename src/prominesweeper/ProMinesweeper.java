@@ -66,7 +66,11 @@ public class ProMinesweeper extends PApplet
 									if(!button[row][col].GetShield())
 									{
 										button[row][col].SetClicked();
-										button[row][col].SetSurrounding(GetNeighbors(row, col));
+										button[row][col].SetSurrounding(GetNeighborsBomb(row, col));
+										if(button[row][col].GetSurrounding() == 0)
+										{
+											RecurseUncover(row, col);
+										}
 										if(button[row][col].GetBomb())
 										{
 											button[row][col].SetEndClick();
@@ -100,7 +104,27 @@ public class ProMinesweeper extends PApplet
 			}
 		}
 	}
-	public int GetNeighbors(int r, int c)
+	public ArrayList<Button> GetNeighbors(int r, int c)
+	{
+		ArrayList<Button> temp = new ArrayList<Button>();
+
+		for(int row = r - 1; row <= r + 1; row++)
+		{
+			for(int col = c - 1; col <= c + 1; col++)
+			{
+				if(row >= 0 && col >= 0 && row < ROWS && col < COLS)
+				{
+					if(button[row][col].GetBomb())
+					{
+						temp.add(button[row][col]);
+					}
+				}
+			}
+		}
+
+		return temp;
+	}
+	public int GetNeighborsBomb(int r, int c)
 	{
 		int count = 0;
 		for(int row = r - 1; row <= r + 1; row++)
@@ -117,6 +141,27 @@ public class ProMinesweeper extends PApplet
 			}
 		}
 		return count;
+	}
+	public void RecurseUncover(int r, int c)
+	{
+		for(int row = r - 1; row <= r + 1; row++)
+		{
+			for(int col = c - 1; col <= c + 1; col++)
+			{
+				if(row >= 0 && col >= 0 && row < ROWS && col < COLS)
+				{
+					if(!button[row][col].GetClicked() && !button[row][col].GetBomb())
+					{
+						button[row][col].SetClicked();
+						button[row][col].SetSurrounding(GetNeighborsBomb(row, col));
+						if(button[row][col].GetSurrounding() == 0)
+						{
+							RecurseUncover(row, col);
+						}
+					}
+				}
+			}
+		}
 	}
 	public void LoseGame()
 	{
