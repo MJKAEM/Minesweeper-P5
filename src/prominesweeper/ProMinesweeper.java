@@ -7,11 +7,14 @@ import java.util.*;
 
 public class ProMinesweeper extends PApplet
 {
-	public final static int ROWS = 10, COLS = 10, BUTTONSIZE = 20;
+	public static int ROWS = 8, COLS = 8, BUTTONSIZE = 20;
+	public static final int bombs = 10;
 
 	private PFont font1 = loadFont("ArialMT-12.vlw");
 	private Button[][] button;
-	private boolean gameOver;
+	private boolean gameOver, gameStarted;
+	private int blankSpaces, marked;
+	private int timer;
 
 	public void setup()
 	{
@@ -20,21 +23,14 @@ public class ProMinesweeper extends PApplet
 
 		button = new Button[ROWS][COLS];
 		gameOver = false;
+		gameStarted = false;
+		marked = 0;
+		timer = 0;
+		blankSpaces = ROWS * COLS;
 
-		for(int row = 0; row < ROWS; row++)
-		{
-			for(int col = 0; col < COLS; col++)
-			{
-				button[row][col] = new Button(this, row, col);
+		SetAllBombs();
 
-				if(Math.random() < .1)
-				{
-					button[row][col].SetBomb();
-				}
-			}
-		}
-
-		size((BUTTONSIZE * ROWS) + 1, (BUTTONSIZE * COLS) + 1);
+		size((BUTTONSIZE * ROWS) + 1, (BUTTONSIZE * COLS) + 1 + 40);
 	}
 
 	public void draw()
@@ -46,9 +42,31 @@ public class ProMinesweeper extends PApplet
 				button[row][col].Show(font1);
 			}
 		}
+
+		fill(64);
+		rect(width / 2 - 15, 5, 30, 30);
+		fill(255, 0, 0);
+		ellipse(width / 2, 20, 25, 25);
+
+		DisplayUseless();
+		WinGame();
 	}
 	public void mouseReleased()
 	{
+		if(mouseButton == LEFT)
+		{
+			if(mouseX >= width / 2 - 15 && mouseX <= width / 2 - 15 + 30)
+			{
+				if(mouseY >= 5 && mouseY <= 5 + 30)
+				{
+					gameOver = false;
+					marked = 0;
+					timer = 0;
+					gameStarted = false;
+					SetAllBombs();
+				}
+			}
+		}
 		if(!gameOver)
 		{
 			if(mouseButton == LEFT)
@@ -59,8 +77,9 @@ public class ProMinesweeper extends PApplet
 					{
 						if(mouseX >= row * BUTTONSIZE && mouseX <= (row * BUTTONSIZE) + BUTTONSIZE)
 						{
-							if(mouseY >= col * BUTTONSIZE && mouseY <= (col * BUTTONSIZE) + BUTTONSIZE)
+							if(mouseY >= col * BUTTONSIZE + 40 && mouseY <= (col * BUTTONSIZE + 40) + BUTTONSIZE)
 							{
+								gameStarted = true;
 								if(!button[row][col].GetClicked())
 								{
 									if(!button[row][col].GetShield())
@@ -91,11 +110,19 @@ public class ProMinesweeper extends PApplet
 					{
 						if(mouseX >= row * BUTTONSIZE && mouseX <= (row * BUTTONSIZE) + BUTTONSIZE)
 						{
-							if(mouseY >= col * BUTTONSIZE && mouseY <= (col * BUTTONSIZE) + BUTTONSIZE)
+							if(mouseY >= col * BUTTONSIZE + 40 && mouseY <= (col * BUTTONSIZE + 40) + BUTTONSIZE)
 							{
 								if(!button[row][col].GetClicked())
 								{
 									button[row][col].SetShield();
+									if(button[row][col].GetShield())
+									{
+										marked++;
+									}
+									else
+									{
+										marked--;
+									}
 								}
 							}
 						}
@@ -175,6 +202,92 @@ public class ProMinesweeper extends PApplet
 					button[row][col].SetClicked();
 				}
 			}
+		}
+	}
+	public void WinGame()
+	{
+		int count = 0;
+		for(int row = 0; row < ROWS; row++)
+		{
+			for(int col = 0; col < COLS; col++)
+			{
+				if(button[row][col].GetClicked() && !button[row][col].GetBomb())
+				{
+					count++;
+				}
+			}
+		}
+		if(count == blankSpaces)
+		{
+			fill(255, 0, 0);
+			text("YOU WIN! NOW GET A LIFE.", 1, 20);
+		}
+	}
+	public void SetAllBombs()
+	{
+		int count = 0;
+		for(int row = 0; row < ROWS; row++)
+		{
+			for(int col = 0; col < COLS; col++)
+			{
+				button[row][col] = new Button(this, row, col);
+
+				if(Math.random() < .1)
+				{
+					button[row][col].SetBomb();
+					blankSpaces--;
+				}
+
+				if(button[row][col].GetBomb())
+				{
+					count++;
+				}
+			}
+		}
+		if(count != bombs)
+		{
+			SetAllBombs();
+		}
+	}
+	public void DisplayUseless()
+	{
+		fill(0);
+		rect(5, 5, 50, 30);
+		rect(width - 5 - 50, 5, 50, 30);
+		fill(255, 0, 0);
+
+		if((bombs - marked) >= 10)
+		{
+			text("0" + (bombs - marked), 10, 20);
+		}
+		else if((bombs - marked) < 10 && (bombs - marked) > -1)
+		{
+			text("00" + (bombs - marked), 10, 20);
+		}
+		else if((bombs - marked) < 0)
+		{
+			text("000", 10, 20);
+		}
+
+		if(timer / 60 < 10)
+		{
+			text("00" + (timer / 60), width + 5 - 50, 20);
+		}
+		else if(timer / 60 < 100)
+		{
+			text("0" + (timer / 60), width + 5 - 50, 20);
+		}
+		else if(timer / 60 < 1000)
+		{
+			text(timer / 60, width + 5 - 50, 20);
+		}
+		else
+		{
+			text(999, width + 5 - 50, 20);
+		}
+		if(gameStarted)
+		{
+			timer++;
 		}
 	}
 }

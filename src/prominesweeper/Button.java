@@ -21,7 +21,7 @@ public class Button
 		endClick = false;
 		shield = false;
 		posX = x * ProMinesweeper.BUTTONSIZE;
-		posY = y * ProMinesweeper.BUTTONSIZE;
+		posY = y * ProMinesweeper.BUTTONSIZE + 40;
 	}
 
 	public void Show(PFont f)
