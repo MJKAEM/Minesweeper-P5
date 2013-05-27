@@ -1,7 +1,5 @@
 package prominesweeper;
 
-import java.awt.Color;
-
 import processing.core.PApplet;
 import processing.core.PFont;
 
@@ -94,7 +92,14 @@ public class Button
 			}
 		}
 	}
-
+	public void YokuDekiMashita()
+	{
+		//Translates to: Good job!
+		//What I mean is: You suck at this game. Don't randomly flag, dummy.
+		
+		p.line(posX, posY, posX + ProMinesweeper.BUTTONSIZE, posY + ProMinesweeper.BUTTONSIZE);
+		p.line(posX + ProMinesweeper.BUTTONSIZE, posY, posX, posY + ProMinesweeper.BUTTONSIZE);
+	}
 	public boolean GetBomb() { return bomb; }
 	public boolean GetClicked() { return clicked; }
 	public int GetSurrounding() { return other; }

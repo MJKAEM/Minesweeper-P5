@@ -1,3 +1,5 @@
+//Martino Kuan, Pro Minesweeper, AP Comp Sci mods 6,7
+
 package prominesweeper;
 
 import processing.core.PApplet;
@@ -7,13 +9,13 @@ import java.util.*;
 
 public class ProMinesweeper extends PApplet
 {
-	public static int ROWS = 8, COLS = 8, BUTTONSIZE = 20;
-	public static final int bombs = 10;
+	public static int ROWS = 16, COLS = 16, BUTTONSIZE = 20;
+	public static final int bombs = 40;
 
 	private PFont font1 = loadFont("ArialMT-12.vlw");
 	private Button[][] button;
-	private boolean gameOver, gameStarted;
-	private int blankSpaces, marked;
+	private boolean gameOver, gameStarted, clickOn, lose;
+	private int marked;
 	private int timer;
 
 	public void setup()
@@ -26,44 +28,125 @@ public class ProMinesweeper extends PApplet
 		gameStarted = false;
 		marked = 0;
 		timer = 0;
-		blankSpaces = ROWS * COLS;
 
 		SetAllBombs();
 
-		size((BUTTONSIZE * ROWS) + 1, (BUTTONSIZE * COLS) + 1 + 40);
+		//size((BUTTONSIZE * ROWS) + 1, (BUTTONSIZE * COLS) + 1 + 40);
+		size(321, 361);
 	}
 
 	public void draw()
 	{
+		background(200);
 		for(int row = 0; row < ROWS; row++)
 		{
 			for(int col = 0; col < COLS; col++)
 			{
 				button[row][col].Show(font1);
+
+				if(gameOver && !gameStarted)
+					if(button[row][col].GetShield())
+					{
+						if(!button[row][col].GetBomb())
+						{
+							button[row][col].YokuDekiMashita();
+						}
+					}
 			}
 		}
 
 		fill(64);
 		rect(width / 2 - 15, 5, 30, 30);
-		fill(255, 0, 0);
+		fill(255, 255, 0);
 		ellipse(width / 2, 20, 25, 25);
+		
+		if(gameOver && !gameStarted && !lose)
+		{
+			fill(0);
+			arc(width / 2 - 5, 15, 5, 8, 0, PI);
+			arc(width / 2 + 5, 15, 5, 8, 0, PI);
+			
+			line(width / 2 - 5, 15, width / 2 + 5, 15);
+			
+			line(width / 2 - 5 - (float)2.5, 15, width / 2 - (float)12.5, 20);
+			line(width / 2 + 5 + (float)2.5, 15, width / 2 + (float)12.5, 20);
+			
+			noFill();
+			arc(width / 2, 25, 10, 5, 0, PI);
+		}
+		else if(gameOver && !gameStarted && lose)
+		{
+			fill(0);
+			line(width / 2 - 5, 15, width / 2 - 3, 18);
+			line(width / 2 - 3, 15, width / 2 - 5, 18);
+			
+			line(width / 2 + 5, 15, width / 2 + 3, 18);
+			line(width / 2 + 3, 15, width / 2 + 5, 18);
+			
+			noFill();
+			arc(width / 2, 25, 10, 5, PI, PI * 2);
+		}
+		else if(clickOn)
+		{
+			fill(0);
+			ellipse(width / 2 - 5, 18, 5, 5);
+			ellipse(width / 2 + 5, 18, 5, 5);
+			ellipse(width / 2, 25, 5, 5);
+		}
+		else if(!clickOn)
+		{
+			fill(0);
+			ellipse(width / 2 - 5, 18, 3, 3);
+			ellipse(width / 2 + 5, 18, 3, 3);
+			noFill();
+			arc(width / 2, 25, 10, 5, 0, PI);
+		}
 
 		DisplayUseless();
 		WinGame();
+	}
+	public void mousePressed()
+	{
+		if(!gameOver)
+		{
+			if(mouseButton == LEFT)
+			{
+				for(int row = 0; row < ROWS; row++)
+				{
+					for(int col = 0; col < COLS; col++)
+					{
+						if(mouseX > row * BUTTONSIZE && mouseX < (row * BUTTONSIZE) + BUTTONSIZE)
+						{
+							if(mouseY > col * BUTTONSIZE + 40 && mouseY < (col * BUTTONSIZE + 40) + BUTTONSIZE)
+							{
+								if(!button[row][col].GetClicked())
+								{
+									if(!button[row][col].GetShield())
+									{
+										clickOn = true;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 	public void mouseReleased()
 	{
 		if(mouseButton == LEFT)
 		{
-			if(mouseX >= width / 2 - 15 && mouseX <= width / 2 - 15 + 30)
+			if(mouseX > width / 2 - 15 && mouseX < width / 2 - 15 + 30)
 			{
-				if(mouseY >= 5 && mouseY <= 5 + 30)
+				if(mouseY > 5 && mouseY < 5 + 30)
 				{
 					gameOver = false;
 					marked = 0;
 					timer = 0;
 					gameStarted = false;
 					SetAllBombs();
+					lose = false;
 				}
 			}
 		}
@@ -75,9 +158,9 @@ public class ProMinesweeper extends PApplet
 				{
 					for(int col = 0; col < COLS; col++)
 					{
-						if(mouseX >= row * BUTTONSIZE && mouseX <= (row * BUTTONSIZE) + BUTTONSIZE)
+						if(mouseX > row * BUTTONSIZE && mouseX < (row * BUTTONSIZE) + BUTTONSIZE)
 						{
-							if(mouseY >= col * BUTTONSIZE + 40 && mouseY <= (col * BUTTONSIZE + 40) + BUTTONSIZE)
+							if(mouseY > col * BUTTONSIZE + 40 && mouseY < (col * BUTTONSIZE + 40) + BUTTONSIZE)
 							{
 								gameStarted = true;
 								if(!button[row][col].GetClicked())
@@ -97,6 +180,7 @@ public class ProMinesweeper extends PApplet
 										}
 									}
 								}
+								clickOn = false;
 							}
 						}
 					}
@@ -108,9 +192,9 @@ public class ProMinesweeper extends PApplet
 				{
 					for(int col = 0; col < COLS; col++)
 					{
-						if(mouseX >= row * BUTTONSIZE && mouseX <= (row * BUTTONSIZE) + BUTTONSIZE)
+						if(mouseX > row * BUTTONSIZE && mouseX < (row * BUTTONSIZE) + BUTTONSIZE)
 						{
-							if(mouseY >= col * BUTTONSIZE + 40 && mouseY <= (col * BUTTONSIZE + 40) + BUTTONSIZE)
+							if(mouseY > col * BUTTONSIZE + 40 && mouseY < (col * BUTTONSIZE + 40) + BUTTONSIZE)
 							{
 								if(!button[row][col].GetClicked())
 								{
@@ -193,6 +277,8 @@ public class ProMinesweeper extends PApplet
 	public void LoseGame()
 	{
 		gameOver = true;
+		gameStarted = false;
+		lose = true;
 		for(int row = 0; row < ROWS; row++)
 		{
 			for(int col = 0; col < COLS; col++)
@@ -201,6 +287,7 @@ public class ProMinesweeper extends PApplet
 				{
 					button[row][col].SetClicked();
 				}
+
 			}
 		}
 	}
@@ -211,16 +298,17 @@ public class ProMinesweeper extends PApplet
 		{
 			for(int col = 0; col < COLS; col++)
 			{
-				if(button[row][col].GetClicked() && !button[row][col].GetBomb())
+				if(!button[row][col].GetClicked())
 				{
 					count++;
 				}
 			}
 		}
-		if(count == blankSpaces)
+		if(count == bombs)
 		{
-			fill(255, 0, 0);
-			text("YOU WIN! NOW GET A LIFE.", 1, 20);
+			lose = false;
+			gameOver = true;
+			gameStarted = false;
 		}
 	}
 	public void SetAllBombs()
@@ -232,10 +320,12 @@ public class ProMinesweeper extends PApplet
 			{
 				button[row][col] = new Button(this, row, col);
 
-				if(Math.random() < .1)
+				if(Math.random() < 0.1)
 				{
-					button[row][col].SetBomb();
-					blankSpaces--;
+					if(count != bombs)
+					{
+						button[row][col].SetBomb();
+					}
 				}
 
 				if(button[row][col].GetBomb())
